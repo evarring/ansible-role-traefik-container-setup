@@ -1,0 +1,79 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for traefik_container_setup
+
+- name: Ensure traefik container volume directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0744'
+    owner: "{{ ansible_user | default(root) }}"
+    group: "{{ ansible_user | default(root) }}"
+  loop:
+    - "{{ traefik_container_setup_dir }}"
+    - "{{ traefik_container_setup_dir }}/letsencrypt"
+    - "{{ traefik_container_setup_dir }}/log"
+  become: true
+
+- name: Configure traefik static config gile
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: '0744'
+  loop:
+    - src: traefik.yml.j2
+      dest: "{{ traefik_container_setup_dir }}/traefik.yml"
+  become: true
+
+- name: Configure traefik dynamic config file
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: '0744'
+  loop:
+    - src: "dynamic_{{ inventory_hostname }}.yml.j2"
+      dest: "{{ traefik_container_setup_dir }}/dynamic.yml"
+  become: true
+
+- name: Create networks
+  community.docker.docker_network:
+    name: "{{ item.name }}"
+  loop: "{{ traefik_container_setup_networks }}"
+  become: true
+
+- name: Create traefik container
+  community.docker.docker_container:
+    name: "{{ traefik_container_setup_name }}"
+    image: "{{ traefik_container_setup_image }}"
+    state: "{{ traefik_container_setup_state | default('started') }}"
+    network_mode: "{{ traefik_container_setup_network_mode }}"
+    networks: "{{ traefik_container_setup_networks }}"
+    healthcheck: "{{ traefik_container_setup_healthcheck | default(omit) }}"
+    recreate: "{{ traefik_container_setup_recreate }}"
+    privileged: "{{ traefik_container_setup_privileged }}"
+    user: "{{ traefik_container_setup_user_uid_gid }}"
+    ports: "{{ traefik_container_setup_ports }}"
+    volumes:
+      - "{{ traefik_container_setup_dir }}/traefik.yml:/etc/traefik/traefik.yml:ro,Z"
+      - "{{ traefik_container_setup_dir }}/dynamic.yml:/etc/traefik/dynamic.yml:ro,Z"
+      - "{{ traefik_container_setup_dir }}/letsencrypt:/letsencrypt:rw,Z"
+      - "{{ traefik_container_setup_dir }}/log:/var/log:rw,Z"
+      - /var/run/docker.sock:/var/run/docker.sock
+    env:
+      TZ: "{{ traefik_container_setup_timezone }}"
+      CLOUDFLARE_EMAIL: "{{ traefik_container_setup_cloudflare_email }}"
+      CLOUDFLARE_DNS_API_TOKEN: "{{ traefik_container_setup_cloudflare_dns_api_token }}"
+      CLOUDFLARE_ZONE_API_TOKEN: "{{ traefik_container_setup_cloudflare_zone_api_token }}"
+    labels: "{{ traefik_container_setup_labels }}"
+    restart_policy: "{{ traefik_container_setup_restart_policy }}"
+
+- name: Enable linger for user {{ ansible_user | default('root') }}
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/loginctl
+      - enable-linger
+      - "{{ ansible_user | default('root') }}"
+    creates: "/var/lib/systemd/linger/{{ ansible_user | default('root') }}"
+  become: true
+  when: ansible_virtualization_type != "container"
+...

@@ -1,0 +1,33 @@
+http:
+  middlewares:
+    secHeaders:
+      headers:
+        browserXssFilter: true
+        contentTypeNosniff: true
+        frameDeny: true
+        customFrameOptionsValue: "SAMEORIGIN"
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+        customResponseHeaders:
+          server: ""
+          x-powered-by: ""
+        referrerPolicy: "strict-origin-when-cross-origin"
+        permissionsPolicy: "geolocation=(), camera=(), microphone=()"
+        crossOriginOpenerPolicy: "same-origin"
+        crossOriginEmbedderPolicy: "require-corp"
+        crossOriginResourcePolicy: "same-origin"
+
+  routers:
+    examplerouter:
+      rule: "Host(`examplesubdomain.{{ traefik_container_setup_domain }}`)"
+      entrypoints: websecure
+      tls:
+        certresolver: letsencrypt
+      service: exampleservice
+
+  services:
+    exampleservice:
+      loadBalancer:
+        servers:
+          - url: "http://{{ ansible_default_ipv4.address }}:3000" # The target service URL

@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: MIT-0
+---
+# defaults file for traefik_container_setup
+
+traefik_container_setup_name: traefik
+traefik_container_setup_networks:
+  - name: traefik
+
+traefik_container_setup_image: docker.io/traefik:latest
+traefik_container_setup_timezone: Europe/Oslo
+traefik_container_setup_labels:
+  traefik.enable: "false"
+traefik_container_setup_dir: /srv/traefik
+
+traefik_container_setup_recreate: true
+traefik_container_setup_privileged: false
+
+traefik_container_setup_ports:
+  - "80:80"
+  - "443:443"
+
+traefik_container_setup_restart_policy: unless-stopped
+
+# /var/run/docker.sock has GID 994 inside the container
+traefik_container_setup_user_uid_gid: "1000:994"
+
+traefik_container_setup_domain: domain.eu
