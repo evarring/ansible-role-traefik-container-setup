@@ -13,6 +13,11 @@
         - "{{ traefik_container_setup_image }}"
       loop_control:
         loop_var: traefikimage_item
+      register: traefik_image_pull_result
+
+    - name: Flush handlers immediately
+      ansible.builtin.meta: flush_handlers
+      when: traefik_image_pull_result.changed # noqa: no-handler
 
 - name: Ensure traefik container is stopped when recreating
   when: traefik_container_setup_recreate
