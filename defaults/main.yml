@@ -19,6 +19,9 @@ traefik_container_setup_ports:
   - "80:80"
   - "443:443"
 
+traefik_container_setup_cpus: 1
+traefik_container_setup_memory: 256M
+
 traefik_container_setup_restart_policy: unless-stopped
 
 # /var/run/docker.sock has GID 994 inside the container

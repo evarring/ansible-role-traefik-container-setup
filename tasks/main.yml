@@ -72,6 +72,8 @@
     state: "{{ traefik_container_setup_state | default('started') }}"
     network_mode: "{{ traefik_container_setup_network_mode }}"
     networks: "{{ traefik_container_setup_networks }}"
+    cpus: "{{ traefik_container_setup_cpus }}"
+    memory: "{{ traefik_container_setup_memory }}"
     healthcheck: "{{ traefik_container_setup_healthcheck | default(omit) }}"
     recreate: "{{ traefik_container_setup_recreate }}"
     privileged: "{{ traefik_container_setup_privileged }}"
