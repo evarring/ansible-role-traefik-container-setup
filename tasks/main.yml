@@ -2,6 +2,30 @@
 ---
 # tasks file for traefik_container_setup
 
+- name: Pull the configured image if they haven't already and stop containers if changed
+  notify: Stop container
+  block:
+    - name: Pull the configured image if hasn't already
+      community.docker.docker_image:
+        name: "{{ traefikimage_item }}"
+        source: pull
+      loop:
+        - "{{ traefik_container_setup_server_image }}"
+      loop_control:
+        loop_var: traefikimage_item
+
+- name: Ensure traefik container is stopped when recreating
+  when: traefik_container_setup_recreate
+  block:
+    - name: Notify the handler
+      ansible.builtin.debug:
+        msg: "Stopping container for recreation"
+      notify: Stop container
+      changed_when: true
+
+    - name: Flush handlers immediately
+      ansible.builtin.meta: flush_handlers
+
 - name: Ensure traefik container volume directories exist
   ansible.builtin.file:
     path: "{{ item }}"

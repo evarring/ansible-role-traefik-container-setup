@@ -12,7 +12,7 @@ traefik_container_setup_labels:
   traefik.enable: "false"
 traefik_container_setup_dir: /srv/traefik
 
-traefik_container_setup_recreate: true
+traefik_container_setup_recreate: false
 traefik_container_setup_privileged: false
 
 traefik_container_setup_ports:
