@@ -56,12 +56,12 @@
 
 - name: Configure traefik dynamic config file
   ansible.builtin.template:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
+    src: "{{ item }}"
+    dest: "{{ traefik_container_setup_dir }}/dynamic.yml"
     mode: '0744'
-  loop:
-    - src: "dynamic_{{ inventory_hostname }}.yml.j2"
-      dest: "{{ traefik_container_setup_dir }}/dynamic.yml"
+  with_first_found:
+    - "dynamic_{{ inventory_hostname }}.yml.j2"
+    - "dynamic.yml.j2"
   become: true
 
 - name: Create networks
